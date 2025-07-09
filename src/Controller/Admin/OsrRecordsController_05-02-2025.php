@@ -1,0 +1,796 @@
+<?php
+
+
+namespace App\Controller\Admin;
+
+use App\Controller\Admin\AppController;
+use Cake\Datasource\ConnectionManager;
+use Cake\ORM\TableRegistry;
+use Cake\Auth\DefaultPasswordHasher;
+
+class OsrRecordsController extends AppController
+{
+
+	public function searchosr()
+	{
+
+		$this->viewBuilder()->layout('layout');
+		$this->LoadModel('OsrRecords');
+		$this->LoadModel('DocumentSubtypes');
+		if ($this->request->is(['post'])) {
+			$district        			= $this->request->data['district'];
+			$taluk             			= $this->request->data['taluk'];
+			$village           			= $this->request->data['village'];
+			$survey_no           		= $this->request->data['survey_no'];
+			$condition = "WHERE 1=1 ";
+			if (!empty($district)) {
+				$condition .= " and  district_name = '" . $district . "'";
+			}
+			if (!empty($taluk)) {
+				$condition .= " and  taluk_name = '" . $taluk . "'";
+			}
+			if (!empty($village)) {
+				$condition .= " and  village_name = '" . $village . "'";
+			}
+			if (!empty($survey_no)) {
+				$condition .= " and  " . $survey_no . " BETWEEN from_survey_no and to_survey_no";
+			}
+
+			$query1 					= "SELECT *  FROM osr_records $condition";
+
+			$connection 			= ConnectionManager::get('default');
+
+			$osrRecords 					= $connection->execute($query1)->fetchAll('assoc');
+
+			//print_r($osrRecords); exit();
+			$taluks            = $this->OsrRecords->find('list', ['keyField' => 'taluk_name', 'valueField' => 'taluk_name'])->where(['OsrRecords.district_name' => $district])->group(['OsrRecords.taluk_name'])->toArray();
+			$villages          = $this->OsrRecords->find('list', ['keyField' => 'village_name', 'valueField' => 'village_name'])->where(['OsrRecords.taluk_name' => $taluk])->group(['OsrRecords.village_name'])->toArray();
+
+
+			$this->set(compact('osrRecords', 'districts', 'taluks', 'villages'));
+		}
+		$districts           = $this->OsrRecords->find('list', ['keyField' => 'district_name', 'valueField' => 'district_name'])->where(['OsrRecords.is_active' => 1])->group(['OsrRecords.district_name'])->toArray();
+		$documentSubtypes    = $this->DocumentSubtypes->find('list', array('order' => 'DocumentSubtypes.name ASC'))->where(['DocumentSubtypes.document_type_id' => 2])->toArray();
+		$this->set(compact('osrRecords', 'documentSubtypes', 'districts'));
+	}
+
+	public function index()
+	{
+		ini_set('memory_limit', '-1');
+		$this->viewBuilder()->layout('layout');
+		$this->LoadModel('OsrRecords');
+		$this->LoadModel('DocumentSubtypes');
+		// $this->LoadModel('Districts');
+		// $this->LoadModel('Taluks');
+		// $this->LoadModel('Villages');
+		$this->LoadModel('OsrDistricts');
+		$this->LoadModel('OsrTaluks');
+		$this->LoadModel('OsrVillages');
+		if ($this->request->is(['post'])) {
+			$document_subtype_id        = $this->request->data['document_subtype_id'];
+			$district        			= $this->request->data['district'];
+			$taluk             			= $this->request->data['taluk'];
+			$village           			= $this->request->data['village'];
+			$query = $this->OsrRecords->find('all', ['contain' => ['DocumentSubtypes']])
+				->where(['OsrRecords.is_active' => 1]);
+
+			if (!empty($district)) {
+				$query->where(['OsrRecords.district_name' => $district]);
+			}
+			if (!empty($taluk)) {
+				$query->where(['OsrRecords.taluk_name' => $taluk]);
+			}
+			if (!empty($village)) {
+				$query->where(['OsrRecords.village_name' => $village]);
+			}
+			$osrRecords = $query->toArray();
+			//$osrRecords 		 		= $this->OsrRecords->find('all',['contain'=>['DocumentSubtypes']])->where(['OsrRecords.is_active'=>1,'OsrRecords.district_name'=>$district,'OsrRecords.taluk_name'=>$taluk,'OsrRecords.village_name'=>$village])->toArray();
+			$taluks            = $this->OsrRecords->find('list', ['keyField' => 'taluk_name', 'valueField' => 'taluk_name'])->where(['OsrRecords.district_name' => $district])->group(['OsrRecords.taluk_name'])->toArray();
+			$villages          = $this->OsrRecords->find('list', ['keyField' => 'village_name', 'valueField' => 'village_name'])->where(['OsrRecords.taluk_name' => $taluk])->group(['OsrRecords.village_name'])->toArray();
+			$this->set(compact('osrRecords', 'districts', 'taluks', 'villages'));
+		}
+		//$osr_records           = $this->OsrRecords->find('all')->select(['OsrRecords.district_name'])->where(['OsrRecords.is_active' => 1])->group(['OsrRecords.district_name'])->toArray();
+		// $districts           = $this->OsrRecords->find('list', ['keyField' => 'district_name', 'valueField' => 'district_name'])->where(['OsrRecords.is_active' => 1])->group(['OsrRecords.district_name'])->toArray();
+		// $districts = array();
+		// $taluks = array();
+		// $villages = array();
+		// foreach ($osr_records as $osr_record) {
+		// 	$districts[$osr_record['district_name']]           = $this->Districts->find('list', ['keyField' => 'id', 'valueField' => 'name'])->where(['Districts.is_active' => 1, 'Districts.id' => $osr_record['district_name']])->toArray();
+		// 	$taluks[$osr_record['taluk_name']]           = $this->Taluks->find('list', ['keyField' => 'id', 'valueField' => 'name'])->where(['Taluks.is_active' => 1, 'Taluks.id' => $osr_record['taluk_name']])->toArray();
+		// 	$villages[$osr_record['village_name']]           = $this->Districts->find('list', ['keyField' => 'id', 'valueField' => 'name'])->where(['Districts.is_active' => 1, 'Districts.id' => $osr_record['district_name']])->toArray();
+		// 	// echo '<pre>';
+		// 	// print_r($districts);
+		// 	// exit();
+		// }
+		//exit();
+		$districts        = $this->OsrDistricts->find('list', ['keyField' => 'id', 'valueField' => 'name'])->where(['OsrDistricts.is_active' => 1])->order(['OsrDistricts.name ASC'])->toArray();
+		$taluks        = $this->OsrTaluks->find('list', ['keyField' => 'id', 'valueField' => 'name'])->where(['OsrTaluks.is_active' => 1])->order(['OsrTaluks.name ASC'])->toArray();
+		$villages        = $this->OsrVillages->find('list', ['keyField' => 'id', 'valueField' => 'name'])->where(['OsrVillages.is_active' => 1])->order(['OsrVillages.name ASC'])->toArray();
+
+		$documentSubtypes    = $this->DocumentSubtypes->find('list', array('order' => 'DocumentSubtypes.name ASC'))->where(['DocumentSubtypes.document_type_id' => 2])->toArray();
+		$this->set(compact('osrRecords', 'documentSubtypes', 'districts', 'osr_record', 'taluks', 'villages'));
+	}
+
+	public function dashboard()
+	{
+
+		$this->viewBuilder()->layout('layout');
+
+		$query1 = "SELECT adu.name, count(osr.id) as valcount, 
+					sum(case when osr.updated_by is not null then 1 else 0 end ) as updatedcount
+					from osr_records  as osr 
+					left join admin_users as adu on adu.id = osr.created_by
+					where adu.role_id = 2
+					group by osr.created_by";
+
+
+		/*		$query2 = "SELECT osr.district_name,osr.taluk_name,
+					osr.village_name, 
+					count(osr.id) as valcount, 
+					sum(case when updated_by is not null then 1 else 0 end ) as updatedcount
+					from osr_records  as osr 
+					group by osr.village_name order by osr.district_name,osr.taluk_name,
+					osr.village_name";
+*/
+		$query3 = "SELECT count(DISTINCT osr.village_name) as valcount
+					from osr_records  as osr";
+
+
+		$query4 = "SELECT count(DISTINCT osr.taluk_name) as valcount
+					from osr_records  as osr";
+
+		$query5 = "SELECT  count(DISTINCT osr.district_name) as valcount
+					from osr_records  as osr";
+
+
+		$query6 = "SELECT osr.district_name,osr.taluk_name, count(DISTINCT osr.village_name) as valcount
+					from osr_records  as osr 
+					group by osr.taluk_name order by osr.taluk_name";
+
+		$query7 = "SELECT  count(osr.id) as valcount
+					from osr_records  as osr ";
+
+		$connection 			= ConnectionManager::get('default');
+
+		$deouserentry 			= $connection->execute($query1)->fetchAll('assoc');
+		//$villagewisecount 		= $connection->execute($query2)->fetchAll('assoc');
+		$villagecount 			= $connection->execute($query3)->fetchAll('assoc');
+		$talukcount 			= $connection->execute($query4)->fetchAll('assoc');
+		$districtcount 			= $connection->execute($query5)->fetchAll('assoc');
+		$talukVillagecount 		= $connection->execute($query6)->fetchAll('assoc');
+		$totalcount 			= $connection->execute($query7)->fetchAll('assoc');
+
+		//print_r($talukVillagecount);exit();
+
+		$this->set(compact('deouserentry', 'villagewisecount', 'villagecount', 'talukcount', 'districtcount', 'talukVillagecount', 'totalcount'));
+	}
+
+
+	public function view($id = null)
+	{
+
+		$this->viewBuilder()->layout('layout');
+		$osrRecords = $this->OsrRecords->get($id);
+		// echo '<pre>';
+		// print_r($osrRecords);
+		// exit();
+		$this->set('osrRecords', $osrRecords);
+	}
+
+
+
+	// public function add()
+	// {
+	// 	$this->viewBuilder()->layout('layout');
+	// 	$this->LoadModel('Districts');
+	// 	if ($this->request->is(['patch', 'post', 'put'])) {
+
+	// 		if (($_POST['district_name'] != '') && ($_POST['taluk_name'] != '') && ($_POST['village_name'] != '')) {
+	// 			//$filename = "OSR_".$this->Auth->user('id')."_".time().uniqid().".jpg";
+	// 			$filetype = $_FILES['file_path']['name'];
+	// 			$array 	  = explode('.', $filetype);
+	// 			$fileExt  =	$array[count($array) - 1];
+	// 			if (in_array(strtolower($fileExt), array('pdf'))) {
+	// 				$filename = "OSR_" . $this->Auth->user('id') . "_" . time() . uniqid() . "." . $fileExt;
+	// 				$village_name = trim($_POST['village_no'] . '_' . $_POST['village_name']);
+	// 				$dirpath = 'uploads/OSR/' . $village_name;
+	// 				if (!file_exists($dirpath)) {
+	// 					mkdir($dirpath);
+	// 				}
+	// 				move_uploaded_file($_FILES['file_path']['tmp_name'], $dirpath . "/" . $filename);
+
+	// 				$osrRecords 	= $this->OsrRecords->newEntity();
+	// 				$osrRecords->document_subtype_id 	= 42;
+	// 				$osrRecords->district_name 			= $_POST['district_name'];
+	// 				$osrRecords->taluk_name 			= $_POST['taluk_name'];
+	// 				$osrRecords->village_name 			= $_POST['village_name'];
+	// 				$osrRecords->village_no 			= $_POST['village_no'];
+	// 				$osrRecords->keyword_tag 			= $_POST['keyword_tag'];
+	// 				$osrRecords->file_path 				= $dirpath . "/" . $filename;
+	// 				$osrRecords->created_on				= date('Y-m-d H:i:s');
+	// 				$osrRecords->created_by				= $this->Auth->user('id');
+	// 				if ($this->OsrRecords->save($osrRecords)) {
+	// 					$this->Flash->success(__('The OSR Record has been saved.'));
+	// 					return $this->redirect(['action' => 'index']);
+	// 				} else {
+	// 					$this->Flash->error(__('The  OSR Record could not be saved. Please, try again.'));
+	// 				}
+	// 			}
+	// 		}
+	// 	}
+	// 	$districts        = $this->Districts->find('list', ['keyField' => 'id', 'valueField' => 'name'])->where(['Districts.is_active' => 1])->toArray();
+
+	// 	// echo '<pre>';
+	// 	// print_r($districts);
+	// 	// exit();
+	// 	$this->set(compact('osrRecords', 'districts', 'taluks', 'villages'));
+
+
+	// 	$this->set(compact('osrRecords', 'districts'));
+	// }
+
+	// public function add_feb_03_2025()
+	// {
+	// 	$this->viewBuilder()->layout('layout');
+	// 	$this->LoadModel('Districts');
+	// 	$this->LoadModel('Taluks');
+	// 	$this->LoadModel('Villages');
+	// 	// $this->LoadModel('Districts');
+	// 	if ($this->request->is(['patch', 'post', 'put'])) {
+
+	// 		if (($_POST['district_id'] != '') && ($_POST['taluk_id'] != '') && ($_POST['village_id'] != '')) {
+	// 			//$filename = "OSR_".$this->Auth->user('id')."_".time().uniqid().".jpg";
+	// 			$filetype = $_FILES['file_path']['name'];
+	// 			$array 	  = explode('.', $filetype);
+	// 			$fileExt  =	$array[count($array) - 1];
+	// 			if (in_array(strtolower($fileExt), array('pdf'))) {
+	// 				$filename = "OSR_" . $this->Auth->user('id') . "_" . time() . uniqid() . "." . $fileExt;
+	// 				$village_name = trim($_POST['village_no'] . '_' . $_POST['village_name']);
+	// 				$dirpath = 'uploads/OSR/' . $village_name;
+	// 				if (!file_exists($dirpath)) {
+	// 					mkdir($dirpath);
+	// 				}
+	// 				move_uploaded_file($_FILES['file_path']['tmp_name'], $dirpath . "/" . $filename);
+
+	// 				$osrRecords 	= $this->OsrRecords->newEntity();
+	// 				$osrRecords->document_subtype_id 	= 42;
+	// 				// $osrRecords->district_name 			= $_POST['district_id'];
+	// 				$dist_id = $_POST['district_id'];
+	// 				$osrRecords->district_name = $this->Districts->find('all')->where(['Districts.id' => $dist_id])->first()->name;
+	// 				$osrRecords->district_id 			= $this->Districts->find('all')->where(['Districts.id' => $dist_id])->first()->id;;
+	// 				$taluk_id = $_POST['taluk_id'];
+	// 				$osrRecords->taluk_name = $this->Taluks->find('all')->where(['Taluks.id' => $taluk_id])->first()->name;
+	// 				$osrRecords->taluk_id = $this->Taluks->find('all')->where(['Taluks.id' => $taluk_id])->first()->id;
+	// 				// $osrRecords->taluk_name 			= $_POST['taluk_id'];
+	// 				$vill_id = $_POST['village_id'];
+	// 				$osrRecords->village_name = $this->Villages->find('all')->where(['Villages.id' => $vill_id])->first()->name;
+	// 				$osrRecords->village_id = $this->Villages->find('all')->where(['Villages.id' => $vill_id])->first()->id;
+	// 				// $osrRecords->village_name 			= $_POST['village_id'];
+	// 				$osrRecords->village_no 			= $_POST['village_no'];
+	// 				$osrRecords->keyword_tag 			= $_POST['keyword_tag'];
+	// 				$osrRecords->file_path 				= $dirpath . "/" . $filename;
+	// 				$osrRecords->created_on				= date('Y-m-d H:i:s');
+	// 				$osrRecords->created_by				= $this->Auth->user('id');
+
+	// 				// echo '<pre>';
+	// 				// print_r($osrRecords);
+	// 				// exit();
+	// 				if ($this->OsrRecords->save($osrRecords)) {
+	// 					$this->Flash->success(__('The OSR Record has been saved.'));
+	// 					return $this->redirect(['action' => 'index']);
+	// 				} else {
+	// 					$this->Flash->error(__('The  OSR Record could not be saved. Please, try again.'));
+	// 				}
+	// 			}
+	// 		}
+
+	// 		$taluks        = $this->Taluks->find('list', ['keyField' => 'id', 'valueField' => 'name'])->where(['Taluks.is_active' => 1])->toArray();
+	// 		$villages        = $this->Villages->find('list', ['keyField' => 'id', 'valueField' => 'name'])->where(['Villages.is_active' => 1])->toArray();
+	// 	}
+	// 	$districts        = $this->Districts->find('list', ['keyField' => 'id', 'valueField' => 'name'])->where(['Districts.is_active' => 1])->order(['Districts.name ASC'])->toArray();
+
+	// 	// echo '<pre>';
+	// 	// print_r($districts);
+	// 	// exit();
+	// 	$this->set(compact('osrRecords', 'districts', 'taluks', 'villages'));
+
+
+	// 	$this->set(compact('osrRecords', 'districts'));
+	// }
+
+	public function add()
+	{
+		$this->viewBuilder()->layout('layout');
+		$this->LoadModel('OsrDistricts');
+		$this->LoadModel('OsrTaluks');
+		$this->LoadModel('OsrVillages');
+		// $this->LoadModel('Districts');
+		if ($this->request->is(['patch', 'post', 'put'])) {
+
+			if (($_POST['district_id'] != '') && ($_POST['taluk_id'] != '') && ($_POST['village_id'] != '')) {
+				//$filename = "OSR_".$this->Auth->user('id')."_".time().uniqid().".jpg";
+				$filetype = $_FILES['file_path']['name'];
+				$array 	  = explode('.', $filetype);
+				$fileExt  =	$array[count($array) - 1];
+				if (in_array(strtolower($fileExt), array('pdf'))) {
+					$filename = "OSR_" . $this->Auth->user('id') . "_" . time() . uniqid() . "." . $fileExt;
+					$village_name = trim($_POST['village_no'] . '_' . $_POST['village_name']);
+					$dirpath = 'uploads/OSR/' . $village_name;
+					if (!file_exists($dirpath)) {
+						mkdir($dirpath);
+					}
+					move_uploaded_file($_FILES['file_path']['tmp_name'], $dirpath . "/" . $filename);
+
+					$osrRecords 	= $this->OsrRecords->newEntity();
+					$osrRecords->document_subtype_id 	= 42;
+					// $osrRecords->district_name 			= $_POST['district_id'];
+					$dist_id = $_POST['district_id'];
+					$osrRecords->district_name = $this->OsrDistricts->find('all')->where(['OsrDistricts.id' => $dist_id])->first()->name;
+					$osrRecords->district_id 			= $this->OsrDistricts->find('all')->where(['OsrDistricts.id' => $dist_id])->first()->id;;
+					$taluk_id = $_POST['taluk_id'];
+					$osrRecords->taluk_name = $this->OsrTaluks->find('all')->where(['OsrTaluks.id' => $taluk_id])->first()->name;
+					$osrRecords->taluk_id = $this->OsrTaluks->find('all')->where(['OsrTaluks.id' => $taluk_id])->first()->id;
+					// $osrRecords->taluk_name 			= $_POST['taluk_id'];
+					$vill_id = $_POST['village_id'];
+					$osrRecords->village_name = $this->OsrVillages->find('all')->where(['OsrVillages.id' => $vill_id])->first()->name;
+					$osrRecords->village_id = $this->OsrVillages->find('all')->where(['OsrVillages.id' => $vill_id])->first()->id;
+					// $osrRecords->village_name 			= $_POST['village_id'];
+					$osrRecords->village_no 			= $_POST['village_no'];
+					$osrRecords->keyword_tag 			= $_POST['keyword_tag'];
+					$osrRecords->file_path 				= $dirpath . "/" . $filename;
+					$osrRecords->created_on				= date('Y-m-d H:i:s');
+					$osrRecords->created_by				= $this->Auth->user('id');
+
+					// echo '<pre>';
+					// print_r($osrRecords);
+					// exit();
+					if ($this->OsrRecords->save($osrRecords)) {
+						$this->Flash->success(__('The OSR Record has been saved.'));
+						return $this->redirect(['action' => 'index']);
+					} else {
+						$this->Flash->error(__('The  OSR Record could not be saved. Please, try again.'));
+					}
+				}
+			}
+
+			// $taluks        = $this->Taluks->find('list', ['keyField' => 'id', 'valueField' => 'name'])->where(['Taluks.is_active' => 1])->toArray();
+			// $villages        = $this->Villages->find('list', ['keyField' => 'id', 'valueField' => 'name'])->where(['Villages.is_active' => 1])->toArray();
+		}
+		$districts        = $this->OsrDistricts->find('list', ['keyField' => 'id', 'valueField' => 'name'])->where(['OsrDistricts.is_active' => 1])->order(['OsrDistricts.name ASC'])->toArray();
+
+		// echo '<pre>';
+		// print_r($districts);
+		// exit();
+		$this->set(compact('osrRecords', 'districts', 'taluks', 'villages'));
+
+
+		$this->set(compact('osrRecords', 'districts'));
+	}
+
+
+
+	public function addmultiple()
+	{
+		$this->viewBuilder()->layout('layout');
+
+		if ($this->request->is(['patch', 'post', 'put'])) {
+			//print_r($this->request->data); exit();
+			if (($this->request->data['district_name'] != '') && ($this->request->data['taluk_name'] != '') && ($this->request->data['village_name'] != '')) {
+
+				$uploadfile = $this->request->data['uploadfile'];
+				foreach ($uploadfile as $key => $value) {
+					//print_r($value);
+					//$filename = "OSR_".$this->Auth->user('id')."_".time().uniqid().".jpg";
+					$filetype 									= $value['name'];
+
+					$array 										= 	explode('.', $filetype);
+					$fileExt									=	$array[count($array) - 1];
+					//print_r($fileExt);
+					if (in_array(strtolower($fileExt), array('jpeg', 'jpg', 'png'))) {
+						$filename = "OSR_" . $this->Auth->user('id') . "_" . time() . uniqid() . "." . $fileExt;
+						$village_name = trim($this->request->data['village_no'] . '_' . $this->request->data['village_name']);
+						$dirpath = 'uploads/OSR/' . $village_name;
+						if (!file_exists($dirpath)) {
+							mkdir($dirpath);
+						}
+						move_uploaded_file($value['tmp_name'], $dirpath . "/" . $filename);
+
+						$osrRecords 						= $this->OsrRecords->newEntity();
+						$osrRecords->document_subtype_id 	= 42;
+						$osrRecords->district_name 			= $this->request->data['district_name'];
+						$osrRecords->taluk_name 			= $this->request->data['taluk_name'];
+						$osrRecords->village_name 			= $this->request->data['village_name'];
+						$osrRecords->village_no 			= $this->request->data['village_no'];
+						$osrRecords->keyword_tag 			= $this->request->data['keyword_tag'];
+						$osrRecords->file_path 				= $dirpath . "/" . $filename;
+						$osrRecords->created_on				= date('Y-m-d H:i:s');
+						$osrRecords->created_by				= $this->Auth->user('id');
+						//print_r($osrRecords);
+						$this->OsrRecords->save($osrRecords);
+						return $this->redirect(['action' => 'index']);
+					}
+				}
+			}
+		}
+	}
+
+
+
+	public function add_format2($district = null, $taluk = null, $vilname = null, $vilno = null)
+	{
+		$this->viewBuilder()->layout('layout');
+		$osrRecords = $this->OsrRecords->newEntity();
+		$sourcedir = "uploads/OSR/";
+		$destinationdir = "uploads/OSR_indexed/";
+
+		$osrFiles = array();
+		$fileList = scandir($sourcedir, 0);
+		for ($i = 2; $i < count($fileList); $i++)
+			$osrFiles[$i - 1] = $fileList[$i];
+		//  print_r($osrFiles[1]);exit();
+		if ($this->request->is(['patch', 'post', 'put'])) {
+
+			$checkDuplicate    = $this->OsrRecords->find('all')->where(['OsrRecords.district_name' => $this->request->data['district_name'], 'OsrRecords.taluk_name' => $this->request->data['taluk_name'], 'OsrRecords.village_name' => $this->request->data['village_name'], 'OsrRecords.from_survey_no' => $this->request->data['from_survey_no'], 'OsrRecords.to_survey_no' => $this->request->data['to_survey_no']])->count();
+			$checkpageDuplicate    = $this->OsrRecords->find('all')->where(['OsrRecords.village_no' => $this->request->data['village_no'], 'OsrRecords.page_no' => $this->request->data['page_no']])->count();
+			// need to check between values
+
+
+			if (($checkDuplicate > 0) || ($checkpageDuplicate > 0)) {
+
+				$this->Flash->error(__('Duplicate. Please Check.'));
+			} else {
+
+				if (isset($this->request->data['save_continue'])) {
+					$adistrict = $this->request->data['district_name'];
+					$ataluk = $this->request->data['taluk_name'];
+					$avilname = $this->request->data['village_name'];
+					$avilno = $this->request->data['village_no'];
+				} elseif (isset($this->request->data['save_only'])) {
+					$adistrict = '';
+					$ataluk = '';
+					$avilname = '';
+					$avilno = '';
+				}
+				$file_name = $this->request->data['file_name'];
+
+
+				$adarray 									= 	explode('.', $file_name);
+				$adfileExt 									= 	$adarray[1];
+				$DCfilename									=	$destinationdir . "OSR_" . $this->Auth->user('id') . "_" . date('dmYhis') . "." . $adfileExt;
+				rename($sourcedir . $file_name, $DCfilename);
+
+
+				$this->request->data['file_path']  			= $DCfilename;
+
+
+
+				//print_r($this->request->data); exit;
+				$osrRecords = $this->OsrRecords->patchEntity($osrRecords, $this->request->getData());
+				if ($this->OsrRecords->save($osrRecords)) {
+					$this->Flash->success(__('The OSR Records has been saved.'));
+					$this->set(compact('adistrict', 'ataluk', 'avilname', 'avilno'));
+
+					// return $this->redirect(['action' => 'add']);
+				} else {
+					//print_r($this->request->data); exit;
+					$this->Flash->error(__('The OSR Records could not be saved. Please, try again.'));
+				}
+			}
+		}
+		$this->set(compact('osrRecords', 'osrFiles'));
+	}
+
+	// public function edit_Feb_03_2025($id = null)
+	// {
+	// 	$this->viewBuilder()->layout('layout');
+
+	// 	$this->LoadModel('DocumentSubtypes');
+	// 	$this->LoadModel('Districts');
+	// 	$this->LoadModel('Taluks');
+	// 	$this->LoadModel('Villages');
+	// 	$osrRecords = $this->OsrRecords->get($id, [
+	// 		'contain' => [],
+	// 	]);
+
+	// 	// echo '<pre>';
+	// 	// print_r($osrRecords);
+	// 	// exit();
+	// 	$last = $this->OsrRecords->find('list')->last();
+	// 	if ($this->request->is(['patch', 'post', 'put'])) {
+	// 		// echo '<pre>';
+	// 		// print_R($this->request->getData());
+	// 		// die;
+	// 		$osrRecords = $this->OsrRecords->patchEntity($osrRecords, $this->request->getData());
+	// 		if ($this->request->data['file_path']['name'] != '') {
+	// 			$filetype = $this->request->data['file_path']['name'];
+	// 			$array 	  = explode('.', $filetype);
+	// 			$fileExt  =	$array[count($array) - 1];
+	// 			$filename = "OSR_" . $this->Auth->user('id') . "_" . time() . uniqid() . "." . $fileExt;
+	// 			$village_name = trim($this->request->data['village_no'] . '_' . $this->request->data['village_name']);
+	// 			$dirpath = 'uploads/OSR/' . $village_name;
+	// 			if (!file_exists($dirpath)) {
+	// 				mkdir($dirpath);
+	// 			}
+	// 			move_uploaded_file($this->request->data['file_path']['tmp_name'], $dirpath . "/" . $filename);
+	// 			$osrRecords->file_path = $dirpath . "/" . $filename;
+	// 		} else {
+	// 			$osrRecords->file_path		= $this->request->data['file_path_1'];
+	// 		}
+	// 		$osrRecords->document_subtype_id 	= 42;
+	// 		// $osrRecords->district_name 			= $_POST['district_id'];
+	// 		$dist_id = $_POST['district_id'];
+	// 		$osrRecords->district_name = $dist_id;
+	// 		$osrRecords->district_id 			= $this->Districts->find('all')->where(['Districts.name' => $dist_id])->first()->id;
+	// 		// echo '<pre>';
+	// 		// print_R($osrRecords->district_id);
+	// 		// die;
+	// 		$taluk_id = $_POST['taluk_id'];
+	// 		$osrRecords->taluk_name = $this->Taluks->find('all')->where(['Taluks.id' => $taluk_id])->first()->name;
+	// 		$osrRecords->taluk_id = $this->Taluks->find('all')->where(['Taluks.id' => $taluk_id])->first()->id;
+	// 		// $osrRecords->taluk_name 			= $_POST['taluk_id'];
+	// 		$vill_id = $_POST['village_id'];
+	// 		$osrRecords->village_name = $this->Villages->find('all')->where(['Villages.id' => $vill_id])->first()->name;
+	// 		$osrRecords->village_id = $this->Villages->find('all')->where(['Villages.id' => $vill_id])->first()->id;
+	// 		// $osrRecords->village_name 			= $_POST['village_id'];
+	// 		$osrRecords->village_no 			= $_POST['village_no'];
+	// 		$osrRecords->keyword_tag 			= $_POST['keyword_tag'];
+	// 		$osrRecords->updated_on = date('Y-m-d H:i:s');
+	// 		$osrRecords->updated_by = $this->Auth->user('id');
+	// 		// echo '<pre>';
+	// 		// print_R($osrRecords);
+	// 		// die;
+	// 		if ($this->OsrRecords->save($osrRecords)) {
+	// 			$this->Flash->success(__('The OSR Records has been updated.'));
+
+	// 			// Retrieve the next record ID
+	// 			$nextRecord = $this->OsrRecords->find('all', ['order' => ['OsrRecords.id' => 'ASC']])->where(['OsrRecords.id >' => $id])->first();
+
+
+	// 			// If there are no more records, redirect to the index page
+	// 			return $this->redirect(['action' => 'index']);
+	// 		} else {
+	// 			$this->Flash->error(__('The OSR Records could not be updated. Please, try again.'));
+	// 		}
+	// 	}
+	// 	$documentSubtypes          = $this->DocumentSubtypes->find('list', array('order' => 'DocumentSubtypes.order_flag ASC'))->where(['DocumentSubtypes.document_type_id' => 2])->toArray();
+	// 	//print_r($documentSubTypes); exit();
+	// 	$districts        = $this->Districts->find('list', ['keyField' => 'name', 'valueField' => 'name'])->where(['Districts.is_active' => 1])->order(['Districts.name ASC'])->toArray();
+	// 	$taluks        = $this->Taluks->find('list', ['keyField' => 'name', 'valueField' => 'name'])->where(['Taluks.is_active' => 1])->order(['Districts.name ASC'])->toArray();
+	// 	$villages        = $this->Villages->find('list', ['keyField' => 'name', 'valueField' => 'name'])->where(['Villages.is_active' => 1])->order(['Districts.name ASC'])->toArray();
+
+	// 	$this->set(compact('osrRecords', 'documentSubtypes', 'nextid', 'taluks', 'villages', 'districts'));
+	// }
+
+	public function edit($id = null)
+	{
+		$this->viewBuilder()->layout('layout');
+
+		$this->LoadModel('DocumentSubtypes');
+		$this->LoadModel('OsrDistricts');
+		$this->LoadModel('OsrTaluks');
+		$this->LoadModel('OsrVillages');
+		$osrRecords = $this->OsrRecords->get($id, [
+			'contain' => [],
+		]);
+
+		// echo '<pre>';
+		// print_r($osrRecords);
+		// exit();
+		$last = $this->OsrRecords->find('list')->last();
+		if ($this->request->is(['patch', 'post', 'put'])) {
+			// echo '<pre>';
+			// print_R($this->request->getData());
+			// die;
+			$osrRecords = $this->OsrRecords->patchEntity($osrRecords, $this->request->getData());
+			if ($this->request->data['file_path']['name'] != '') {
+				$filetype = $this->request->data['file_path']['name'];
+				$array 	  = explode('.', $filetype);
+				$fileExt  =	$array[count($array) - 1];
+				$filename = "OSR_" . $this->Auth->user('id') . "_" . time() . uniqid() . "." . $fileExt;
+				$village_name = trim($this->request->data['village_no'] . '_' . $this->request->data['village_name']);
+				$dirpath = 'uploads/OSR/' . $village_name;
+				if (!file_exists($dirpath)) {
+					mkdir($dirpath);
+				}
+				move_uploaded_file($this->request->data['file_path']['tmp_name'], $dirpath . "/" . $filename);
+				$osrRecords->file_path = $dirpath . "/" . $filename;
+			} else {
+				$osrRecords->file_path		= $this->request->data['file_path_1'];
+			}
+			$osrRecords->document_subtype_id 	= 42;
+			// $osrRecords->district_name 			= $_POST['district_id'];
+			$dist_id = $_POST['district_id'];
+			// $osrRecords->district_name = $dist_id;
+			$osrRecords->district_name 			= $this->OsrDistricts->find('all')->where(['OsrDistricts.id' => $dist_id])->first()->name;
+			// // echo '<pre>';
+			// // print_R($osrRecords->district_id);
+			// // die;
+			$taluk_id = $_POST['taluk_id'];
+			// $osrRecords->taluk_id = $this->OsrTaluks->find('all')->where(['OsrTaluks.name' => $taluk_id])->first()->name;
+			// $osrRecords->taluk_id = $_POST['taluk_id'];
+			$osrRecords->taluk_name 			= $this->OsrTaluks->find('all')->where(['OsrTaluks.id' => $taluk_id])->first()->name;
+			$vill_id = $_POST['village_id'];
+			$osrRecords->village_name = $this->OsrVillages->find('all')->where(['OsrVillages.id' => $vill_id])->first()->name;
+			// $osrRecords->village_id = $this->OsrVillages->find('all')->where(['OsrVillages.id' => $vill_id])->first()->id;
+			// $osrRecords->village_name 			= $_POST['village_id'];
+			$osrRecords->village_no 			= $_POST['village_no'];
+			$osrRecords->keyword_tag 			= $_POST['keyword_tag'];
+			$osrRecords->updated_on = date('Y-m-d H:i:s');
+			$osrRecords->updated_by = $this->Auth->user('id');
+			// echo '<pre>';
+			// print_r($osrRecords);
+			// die;
+			if ($this->OsrRecords->save($osrRecords)) {
+				$this->Flash->success(__('The OSR Records has been updated.'));
+
+				// Retrieve the next record ID
+				$nextRecord = $this->OsrRecords->find('all', ['order' => ['OsrRecords.id' => 'ASC']])->where(['OsrRecords.id >' => $id])->first();
+
+
+				// If there are no more records, redirect to the index page
+				return $this->redirect(['action' => 'index']);
+			} else {
+				$this->Flash->error(__('The OSR Records could not be updated. Please, try again.'));
+			}
+		}
+		$documentSubtypes          = $this->DocumentSubtypes->find('list', array('order' => 'DocumentSubtypes.order_flag ASC'))->where(['DocumentSubtypes.document_type_id' => 2])->toArray();
+		//print_r($documentSubTypes); exit();
+		$districts        = $this->OsrDistricts->find('list', ['keyField' => 'id', 'valueField' => 'name'])->where(['OsrDistricts.is_active' => 1])->order(['OsrDistricts.name ASC'])->toArray();
+		$taluks        = $this->OsrTaluks->find('list', ['keyField' => 'id', 'valueField' => 'name'])->where(['OsrTaluks.is_active' => 1])->order(['OsrTaluks.name ASC'])->toArray();
+		$villages        = $this->OsrVillages->find('list', ['keyField' => 'id', 'valueField' => 'name'])->where(['OsrVillages.is_active' => 1])->order(['OsrVillages.name ASC'])->toArray();
+
+		$this->set(compact('osrRecords', 'documentSubtypes', 'nextid', 'taluks', 'villages', 'districts'));
+	}
+
+	public function ajaxgettaluks($dist_name = null)
+	{
+
+		$this->viewBuilder()->layout('');
+		$this->LoadModel('OsrRecords');
+
+		// echo '<pre>';
+		// print_r($dist_name);
+		// exit();
+
+		$taluks           = $this->OsrRecords->find('list', ['keyField' => 'taluk_name', 'valueField' => 'taluk_name'])->where(['OsrRecords.district_name' => $dist_name, 'OsrRecords.is_active' => 1])->toArray();
+
+		// echo '<pre>';
+		// print_r($taluks);
+		// exit();
+		$this->set(compact('taluks'));
+	}
+
+
+	public function ajaxtalukoption($val = null)
+	{
+		// print_r($id);
+		// exit();
+		$this->loadModel('OsrTaluks');
+		$this->loadModel('OsrDistricts');
+
+		$taluks = $this->OsrTaluks->find('all')
+			->where(['OsrTaluks.district_id' => $val])
+			->order(['OsrTaluks.name ASC'])->toArray();
+		// echo '<pre>';
+		// print_r($taluks);
+		// exit();
+		// Prepare the response as HTML options
+		$response = '<option value="">Select Your Taluk...</option>';
+		foreach ($taluks as $taluk) {
+			$response .= '<option value="' . $taluk['id'] . '">' . $taluk['name'] . '</option>';
+		}
+
+		// Output the response
+		echo $response;
+		exit();
+		$this->set(compact('taluks'));
+	}
+	public function ajaxtalukeditoption($val = null)
+	{
+		// print_r($val);
+		// exit();
+		$this->loadModel('OsrTaluks');
+		$this->loadModel('OsrDistricts');
+
+		// $districts = $this->OsrDistricts->find('all')
+		// 	->where(['OsrDistricts.name' => $val])
+		// 	->order(['OsrDistricts.name ASC'])->first();
+		// echo '<pre>';
+		// print_r($districts);
+		// exit();
+		$taluks = $this->OsrTaluks->find('all')
+			->where(['OsrTaluks.district_id' => $val])
+			->toArray();
+		// echo '<pre>';
+		// print_r($taluks);
+		// exit();
+		// Prepare the response as HTML options
+		$response = '<option value="">Select Your Taluk...</option>';
+		foreach ($taluks as $taluk) {
+			$response .= '<option value="' . $taluk['id'] . '">' . $taluk['name'] . '</option>';
+		}
+
+		// Output the response
+		echo $response;
+		exit();
+		$this->set(compact('taluks'));
+	}
+	public function ajaxoptionvillages($district_id = null, $taluk_id = null)
+	{
+		// print_r($district_id . $taluk_id);
+		// exit();
+		$this->loadModel('OsrVillages');
+
+		$villages = $this->OsrVillages->find('all')
+			->where(['OsrVillages.district_id' => $district_id, 'OsrVillages.taluk_id' => $taluk_id])
+			->toArray();
+		// echo '<pre>';
+		// print_r($villages);
+		// exit();
+		// Prepare the response as HTML options
+		$response1 = '<option value="">Select Your Village...</option>';
+		foreach ($villages as $village) {
+			$response1 .= '<option value="' . $village['id'] . '">' . $village['name'] . '</option>';
+		}
+
+		// Output the response
+		echo $response1;
+		exit();
+		$this->set(compact('villages'));
+	}
+	public function ajaxoptioneditvillages($district_name = null, $taluk_id = null)
+	{
+		// print_r($district_id . $taluk_id);
+		// exit();
+		$this->loadModel('OsrVillages');
+		$this->loadModel('OsrTaluks');
+		$this->loadModel('OsrDistricts');
+
+		// $districts = $this->OsrDistricts->find('all')
+		// 	->where(['OsrDistricts.name' => $district_name])
+		// 	->first();
+		$villages = $this->OsrVillages->find('all')
+			->where(['OsrVillages.district_id' => $district_name, 'OsrVillages.taluk_id' => $taluk_id])
+			->order(['OsrVillages.name ASC'])->toArray();
+		// echo '<pre>';
+		// print_r($villages);
+		// exit();
+		// Prepare the response as HTML options
+		$response1 = '<option value="">Select Your Village...</option>';
+		foreach ($villages as $village) {
+			$response1 .= '<option value="' . $village['id'] . '">' . $village['name'] . '</option>';
+		}
+
+		// Output the response
+		echo $response1;
+		exit();
+		$this->set(compact('villages'));
+	}
+
+	public function ajaxgetvillages($taluk_name = null)
+	{
+
+		$this->viewBuilder()->layout('');
+		$this->LoadModel('OsrRecords');
+
+		$villages           = $this->OsrRecords->find('list', ['keyField' => 'village_name', 'valueField' => 'village_name'])->where(['OsrRecords.taluk_name' => $taluk_name, 'OsrRecords.is_active' => 1])->group(['OsrRecords.village_name'])->toArray();
+
+
+		$this->set(compact('villages'));
+	}
+
+	public function delete($id = null)
+	{
+
+		$this->request->allowMethod(['post', 'delete']);
+		$osrRecords = $this->OsrRecords->get($id);
+		$osrRecords->is_active = 0;
+		if ($this->OsrRecords->save($osrRecords)) {
+			$this->Flash->success(__('The OSR Record has been deleted.'));
+		} else {
+			$this->Flash->error(__('The OSR Record could not be deleted. Please, try again.'));
+		}
+
+		return $this->redirect(['action' => 'index']);
+	}
+}

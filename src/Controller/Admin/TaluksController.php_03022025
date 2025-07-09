@@ -1,0 +1,219 @@
+<?php
+namespace App\Controller\Admin;
+use App\Controller\Admin\AppController;
+use TimeConversion;
+
+
+class TaluksController extends AppController
+{
+  
+    public function index()
+    {
+		$this->viewBuilder()->layout('layout');
+       /* $this->paginate = [
+            'contain' => ['Districts'],
+        ];*/
+        $taluks = $this->paginate($this->Taluks);
+		
+		$taluks =  $this->Taluks->find('all',['contain' => ['Districts']])->where(['Taluks.is_active'=>1])->toArray();
+     
+
+        $this->set(compact('taluks'));
+    }
+
+   
+    public function view($id = null)
+    {
+		$this->viewBuilder()->layout('layout');
+        $taluk = $this->Taluks->get($id, [
+            'contain' => ['Districts', 'AdminUsers', 'RtiRequestRecords', 'Users'],
+        ]);
+
+        $this->set('taluk', $taluk);
+    }
+
+   
+    public function add()
+    {
+		$this->viewBuilder()->layout('layout');
+       $taluk = $this->Taluks->newEntity();
+        if ($this->request->is(['patch', 'post', 'put'])) {	
+			$checkpageDuplicate    = $this->Taluks->find('all')->where(['Taluks.name'=>trim($this->request->data['name']),'Taluks.district_id'=>$this->request->data['district_id']])->count();
+			$validator = $this->Taluks->getValidator('default');
+            $newRequest= $this->request->getData(); 
+                // Validate the modified data using the validator
+            $errors = $validator->errors($newRequest);
+               //echo '<pre>';print_R($errors);die;
+			
+		if (empty($errors)) {
+				if(($checkpageDuplicate > 0)){
+					$this->Flash->error(__('Duplicate Entry. Please Check.'));
+				}else{
+					$taluk = $this->Taluks->patchEntity($taluk, $this->request->getData());
+					$taluk->is_active  = 1;
+					$taluk->created_by = $this->Auth->User('id');
+					$taluk->created_date = date('Y-m-d H:i:s');
+					if ($this->Taluks->save($taluk)) {
+						$this->Flash->success(__('The taluk has been saved.'));
+
+						return $this->redirect(['action' => 'index']);
+					}
+					$this->Flash->error(__('The taluk could not be saved. Please, try again.'));
+				}
+			}else {
+                  
+                $this->set('errors', $errors);
+           }
+		}
+        $districts = $this->Taluks->Districts->find('list', ['limit' => 200]);
+        $this->set(compact('taluk', 'districts'));
+    }
+
+ 
+    public function edit($id = null)
+    {
+		$this->viewBuilder()->layout('layout');
+        $taluk = $this->Taluks->get($id, [
+            'contain' => [],
+        ]);
+        if ($this->request->is(['patch', 'post', 'put'])) {
+           $checkpageDuplicate    = $this->Taluks->find('all')->where(['Taluks.name'=>trim($this->request->data['name']),'Taluks.district_id'=>$this->request->data['district_id'],'Taluks.id !='=>$id])->count();
+			if(($checkpageDuplicate > 0)){
+				$this->Flash->error(__('Duplicate Entry. Please Check.'));
+			}else{
+				$taluk = $this->Taluks->patchEntity($taluk, $this->request->getData());
+				$taluk->is_active     = 1;
+				$taluk->modified_by   = $this->Auth->User('id');
+				$taluk->modified_date = date('Y-m-d H:i:s');
+				if ($this->Taluks->save($taluk)) {
+					$this->Flash->success(__('The taluk has been saved.'));
+
+					return $this->redirect(['action' => 'index']);
+				}
+				$this->Flash->error(__('The taluk could not be saved. Please, try again.'));
+			}
+        }
+        $districts = $this->Taluks->Districts->find('list', ['limit' => 200]);
+        $this->set(compact('taluk', 'districts'));
+    }
+
+   
+    public function delete($id = null)
+    {
+		
+        $this->request->allowMethod(['post', 'delete']);
+        $taluk = $this->Taluks->get($id);
+		$taluk->is_active  = 0;
+        if ($this->Taluks->save($taluk)) {
+            $this->Flash->success(__('The taluk has been deleted.'));
+        } else {
+            $this->Flash->error(__('The taluk could not be deleted. Please, try again.'));
+        }
+
+        return $this->redirect(['action' => 'index']);
+    }
+    
+    
+    
+    
+    
+    // comman taluks
+    
+    public function com_index()
+    {
+		$this->viewBuilder()->layout('layout');
+       /* $this->paginate = [
+            'contain' => ['Districts'],
+        ];*/
+        $taluks = $this->paginate($this->Taluks);
+		
+		$taluks =  $this->Taluks->find('all',['contain' => ['Districts']])->where(['Taluks.comman_is_active'=>1])->toArray();
+     
+
+        $this->set(compact('taluks'));
+    }
+
+   
+    public function com_view($id = null)
+    {
+		$this->viewBuilder()->layout('layout');
+        $taluk = $this->Taluks->get($id, [
+            'contain' => ['Districts', 'AdminUsers', 'RtiRequestRecords', 'Users'],
+        ]);
+
+        $this->set('taluk', $taluk);
+    }
+
+   
+    public function com_add()
+    {
+		$this->viewBuilder()->layout('layout');
+        $taluk = $this->Taluks->newEntity();
+        if ($this->request->is('post')) {
+			$checkpageDuplicate    = $this->Taluks->find('all')->where(['Taluks.name'=>trim($this->request->data['name']),'Taluks.district_id'=>$this->request->data['district_id'],'Taluks.comman_is_active'=>1])->count();
+			if(($checkpageDuplicate > 0)){
+				$this->Flash->error(__('Duplicate Entry. Please Check.'));
+			}else{
+				$taluk = $this->Taluks->patchEntity($taluk, $this->request->getData());
+				$taluk->is_active  = 0;
+				$taluk->comman_is_active  = 1;
+				$taluk->created_by = $this->Auth->User('id');
+				$taluk->created_date = date('Y-m-d H:i:s');
+				if ($this->Taluks->save($taluk)) {
+					$this->Flash->success(__('The taluk has been saved.'));
+
+					return $this->redirect(['action' => 'com_index']);
+				}
+				$this->Flash->error(__('The taluk could not be saved. Please, try again.'));
+			}
+		}
+         $districts = $this->Taluks->Districts->find('list')->where(['Districts.comman_is_active'=>1])->toArray();
+        $this->set(compact('taluk', 'districts'));
+    }
+
+ 
+    public function com_edit($id = null)
+    {
+		$this->viewBuilder()->layout('layout');
+        $taluk = $this->Taluks->get($id, [
+            'contain' => [],
+        ]);
+        if ($this->request->is(['patch', 'post', 'put'])) {
+           $checkpageDuplicate    = $this->Taluks->find('all')->where(['Taluks.name'=>trim($this->request->data['name']),'Taluks.district_id'=>$this->request->data['district_id'],'Taluks.id !='=>$id,'Taluks.comman_is_active'=>1])->count();
+			if(($checkpageDuplicate > 0)){
+				$this->Flash->error(__('Duplicate Entry. Please Check.'));
+			}else{
+				$taluk = $this->Taluks->patchEntity($taluk, $this->request->getData());
+				$taluk->is_active     = 0;
+			    $taluk->comman_is_active  = 1;
+				$taluk->modified_by   = $this->Auth->User('id');
+				$taluk->modified_date = date('Y-m-d H:i:s');
+				if ($this->Taluks->save($taluk)) {
+					$this->Flash->success(__('The taluk has been saved.'));
+
+					return $this->redirect(['action' => 'com_index']);
+				}
+				$this->Flash->error(__('The taluk could not be saved. Please, try again.'));
+			}
+        }
+        $districts = $this->Taluks->Districts->find('list')->where(['Districts.comman_is_active'=>1])->toArray();
+        $this->set(compact('taluk', 'districts'));
+    }
+
+   
+    public function com_delete($id = null)
+    {
+		
+        $this->request->allowMethod(['post', 'delete']);
+        $taluk = $this->Taluks->get($id);
+		$taluk->is_active  = 0;
+		$taluk->comman_is_active  = 0;
+        if ($this->Taluks->save($taluk)) {
+            $this->Flash->success(__('The taluk has been deleted.'));
+        } else {
+            $this->Flash->error(__('The taluk could not be deleted. Please, try again.'));
+        }
+
+        return $this->redirect(['action' => 'index']);
+    }
+}

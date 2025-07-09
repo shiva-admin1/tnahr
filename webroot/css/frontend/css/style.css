@@ -1,0 +1,79 @@
+#login-page-2 {
+    width: 480px;
+}
+
+#login-page-2 {
+    margin:auto;
+    position: relative;
+}
+
+.login-slick {
+    width: 480px !important;
+    position: relative !important;
+    float: left !important;
+}
+
+
+
+#slick .login-form {
+	background: #fff;
+	position: relative;
+	width: 100%;
+	height: auto;
+	float: left;
+	padding: 40px;
+	-webkit-box-shadow: 0 0 8px 0 rgba(0,0,0,0.7);
+	-moz-box-shadow: 0 0 8px 0 rgba(0,0,0,0.7);
+	box-shadow: 0 0 8px 0 rgba(0,0,0,0.7);
+}
+
+.login-title.text-center {
+    font-size: 21px !important;
+    margin-bottom: 20px !important;
+    font-weight: 600 !important;
+    background: #607D8B;
+    padding: 5px;
+    color: #fff;
+    border-bottom: 2px solid #3498db;
+}
+.left-login {
+    margin-left: 20px !important;
+}
+
+body.bg {
+    width: 100%;
+    height: 100%;
+    background: url(../demo/bg.jpg) 0 0 repeat;
+    margin: 0;
+    padding: 0;
+}
+
+.border {
+    border: 1px solid #000;
+}
+
+td {
+    padding: 6px 12px;
+    border: 1px solid #d9d7ce;
+}
+
+th {
+    text-align: inherit;
+    padding: 6px 12px;
+    border: 1px solid #d9d7ce;
+}
+
+tbody tr th {
+    background: #2980b9;
+    color: #fff;
+}
+
+.h4, h4 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 0.4rem;
+    margin-top: 2rem;
+}
+
+
+    

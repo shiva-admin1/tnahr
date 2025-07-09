@@ -1,0 +1,122 @@
+<?php
+namespace App\Controller\Admin;
+use App\Controller\Admin\AppController;
+use TimeConversion;
+
+
+class VillagesController extends AppController
+{  
+    
+    
+    // comman taluks
+    
+    public function com_index()
+    {
+		$this->viewBuilder()->layout('layout');
+   
+        $villages = $this->paginate($this->Villages);
+		
+		$villages =  $this->Villages->find('all',['contain' => ['Districts','Taluks']])->where(['Villages.is_active'=>1])->toArray();
+		
+	  //echo "<pre>";	print_r($villages); exit();
+     
+
+        $this->set(compact('villages'));
+    }
+
+   
+    public function com_view($id = null)
+    {
+		$this->viewBuilder()->layout('layout');
+        $village = $this->Villages->get($id, [
+            'contain' => ['Districts', 'Taluks'],
+        ]);
+
+        $this->set('village', $village);
+    }
+
+   
+    public function com_add()
+    {
+		$this->viewBuilder()->layout('layout');
+        $village = $this->Villages->newEntity();
+        if ($this->request->is('post')) {
+			$checkpageDuplicate    = $this->Villages->find('all')->where(['Villages.name'=>trim($this->request->data['name']),'Villages.district_id'=>$this->request->data['district_id'],'Villages.taluk_id'=>$this->request->data['taluk_id']])->count();
+			if(($checkpageDuplicate > 0)){
+				$this->Flash->error(__('Duplicate Entry. Please Check.'));
+			}else{
+				$village = $this->Villages->patchEntity($village, $this->request->getData());
+				$village->is_active  = 1;
+				$village->created_by = $this->Auth->User('id');
+				$village->created_on = date('Y-m-d H:i:s');
+				if ($this->Villages->save($village)) {
+					$this->Flash->success(__('The Village has been saved.'));
+
+					return $this->redirect(['action' => 'com_index']);
+				}
+				$this->Flash->error(__('The Village could not be saved. Please, try again.'));
+			}
+		}
+         $districts = $this->Villages->Districts->find('list')->where(['Districts.comman_is_active'=>1])->toArray();
+        $this->set(compact('taluk', 'districts'));
+    }
+
+ 
+    public function com_edit($id = null)
+    {
+		$this->viewBuilder()->layout('layout');
+		 $this->LoadModel('Taluks');
+        $village = $this->Villages->get($id, [
+            'contain' => [],
+        ]);
+        if ($this->request->is(['patch', 'post', 'put'])) {
+           $checkpageDuplicate    = $this->Villages->find('all')->where(['Villages.name'=>trim($this->request->data['name']),'Villages.district_id'=>$this->request->data['district_id'],'Villages.taluk_id'=>$this->request->data['taluk_id'],'Villages.id !='=>$id,'Villages.is_active'=>1])->count();
+			if(($checkpageDuplicate > 0)){
+				$this->Flash->error(__('Duplicate Entry. Please Check.'));
+			}else{
+				$village = $this->Villages->patchEntity($village, $this->request->getData());
+				$village->is_active     = 1;
+				$village->modified_by   = $this->Auth->User('id');
+				$village->modified_on   = date('Y-m-d H:i:s');
+				if ($this->Villages->save($village)) {
+					$this->Flash->success(__('The Village has been saved.'));
+
+					return $this->redirect(['action' => 'com_index']);
+				}
+				$this->Flash->error(__('The Village could not be saved. Please, try again.'));
+			}
+        }
+        $districts = $this->Villages->Districts->find('list')->where(['Districts.comman_is_active'=>1])->toArray();
+         $taluks = $this->Taluks->find('list')->where(['Taluks.district_id'=>$village['district_id']])->toArray();
+        $this->set(compact('village', 'districts','taluks'));
+    }
+
+   
+    public function com_delete($id = null)
+    {
+		
+        $this->request->allowMethod(['post', 'delete']);
+        $village = $this->Villages->get($id);
+		$village->is_active  = 0;
+        if ($this->Villages->save($village)) {
+            $this->Flash->success(__('The Village has been deleted.'));
+        } else {
+            $this->Flash->error(__('The Village could not be deleted. Please, try again.'));
+        }
+
+        return $this->redirect(['action' => 'com_index']);
+    }
+    
+    
+    public function ajaxtaluk($dist_id = null){
+         $this->LoadModel('Taluks');
+         
+        
+         $taluks = $this->Taluks->find('all')->where(['Taluks.district_id'=>$dist_id])->toArray();
+         
+
+         $this->set(compact('taluks'));
+        
+    
+    }
+}

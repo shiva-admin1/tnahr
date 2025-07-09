@@ -1,0 +1,280 @@
+<?php
+namespace App\Controller\Admin;
+use App\Controller\Admin\AppController;
+
+class IfrRecordsController extends AppController
+{
+    public function index()
+    {
+        $this->viewBuilder()->layout('layout');
+		$this->LoadModel('IfrRecords');
+        if ($this->request->is(['post'])) {	
+          $district          = $this->request->data['district'];
+		  $taluk             = $this->request->data['taluk'];
+		  $village           = $this->request->data['village'];
+        //  $ifrRecords 		 = $this->IfrRecords->find('all')->where(['IfrRecords.is_active'=>1,'IfrRecords.district_name'=>$district])->toArray();
+		$query = $this->IfrRecords->find('all')->where(['IfrRecords.is_active' => 1]);
+		if (!empty($district)) {
+			$query->where(['IfrRecords.district_name' => $district]);
+		}
+		if (!empty($taluk)) {
+			$query->where(['IfrRecords.taluk_name' => $taluk]);
+		}
+		if (!empty($village)) {
+			$query->where(['IfrRecords.village_name' => $village]);
+		}
+		$ifrRecords = $query->toArray();
+          $taluks            = $this->IfrRecords->find('list',['keyField'=>'taluk_name','valueField'=>'taluk_name'])->where(['IfrRecords.district_name'=>$district,'IfrRecords.is_active'=>1])->group(['IfrRecords.taluk_name'])->toArray();
+		  $villages          = $this->IfrRecords->find('list',['keyField'=>'village_name','valueField'=>'village_name'])->where(['IfrRecords.taluk_name'=>$taluk,'IfrRecords.is_active'=>1])->group(['IfrRecords.village_name'])->toArray();
+		
+		}
+        $districts           = $this->IfrRecords->find('list',['keyField'=>'district_name','valueField'=>'district_name'])->where(['IfrRecords.is_active'=>1])->group(['IfrRecords.district_name'])->toArray();
+		$this->set(compact('ifrRecords','districts','taluks','villages'));
+    }
+
+    
+    public function view($id = null)
+    {
+        $this->viewBuilder()->layout('layout');
+        $ifrRecord = $this->IfrRecords->get($id, [
+            'contain' => [],
+        ]);
+
+        $this->set('ifrRecord', $ifrRecord);
+    }
+
+    public function add()
+    {
+        $this->viewBuilder()->layout('layout');
+        $ifrRecords = $this->IfrRecords->newEntity();
+		$this->LoadModel('DocumentSubtypes');
+		
+		 if ($this->request->is(['patch', 'post', 'put'])) {	
+		//	$checkpageDuplicate    = $this->IfrRecords->find('all')->where(['IfrRecords.title_deed_no'=>$this->request->data['title_deed_no'],'IfrRecords.sheet_no'=>$this->request->data['sheet_no']])->count();
+			//if($checkpageDuplicate > 0){
+			
+			//	$this->Flash->error(__('Duplicate Entry. Please Check.'));
+			//}else{
+			
+				$this->request->data['created_on']      = date('Y-m-d H:i:s');	
+				$this->request->data['created_by']      = $this->Auth->user('id');
+				$ifrfile 						        = $this->request->data['file_path'];
+				
+				// $file 										= 	$ifrfile['name'];
+				// $array 										= 	explode('.', $file);
+				// $fileName									=	'IFR';	  	
+				// $fileExt									=	$array[count($array)-1];
+				// $newfile									=	$fileName."_".date('YmdHis').".".$fileExt;
+				// $tempFile 									= 	$ifrfile['tmp_name'];
+				// $targetPath 								= 	'uploads/IFR/';
+				// $targetFile 								= 	$targetPath .$newfile;
+				// move_uploaded_file($tempFile,$targetFile);
+				// $this->request->data['file_path']			= $targetFile;
+											
+								
+				$data = $this->request->getData();
+                
+                // Check if document_subtype_id is not 44 and unset fields accordingly
+                if ($data['document_subtype_id'] != 44) {
+                    unset($data['author']);
+                    unset($data['publisher_name']);
+                }
+                
+                // Create a new request object with modified data
+                $newRequest = $this->request->withParsedBody($data);
+                
+                // Use the modified request object to get the validator
+                $validator = $this->IfrRecords->getValidator('default');
+                
+                // Validate the modified data using the validator
+                $errors = $validator->errors($newRequest->getData());
+
+             // print_R($errors);die;
+    
+               // if (empty($errors)) {
+					$this->request->data['notification_date']			= date('Y-m-d',strtotime($this->request->data['notification_date']));	
+                   if (!empty($this->request->getData('file_path.tmp_name'))) {
+                    // File has been uploaded
+                    // Process file upload and set file path
+					$file 										= 	$ifrfile['name'];
+					$array 										= 	explode('.', $file);
+					$fileName									=	'IFR';	  	
+					$fileExt									=	$array[count($array)-1];
+					$newfile									=	$fileName."_".date('YmdHis').".".$fileExt;
+					$tempFile 									= 	$ifrfile['tmp_name'];
+					$targetPath 								= 	'uploads/IFR/';
+					$targetFile 								= 	$targetPath .$newfile;
+					move_uploaded_file($tempFile,$targetFile);
+					$this->request->data['file_path']			= $targetFile;
+                } else {
+                    // No file uploaded, set file path to null or an empty value
+                    $this->request->data['file_path'] = null; // or ''
+                }
+							
+				$ifrRecords = $this->IfrRecords->patchEntity($ifrRecords, $this->request->getData());
+                $ifrRecords->file_path= $targetFile;	
+				if ($this->IfrRecords->save($ifrRecords)) {
+					
+					
+					$this->Flash->success(__('The IFR Record has been saved.'));
+					return $this->redirect(['action' => 'index']);
+				 
+				}else{
+					
+				
+					$this->Flash->error(__('The IFR Record could not be saved. Please, try again.'));
+				}
+		// 	}else {
+                  
+		// 		$this->set('errors', $errors);
+		//    }
+			//}
+        }
+		$documentSubtypes             = $this->DocumentSubtypes->find('list', array('order'=>'DocumentSubtypes.order_flag ASC'))->where(['DocumentSubtypes.document_type_id' => 4])->toArray();
+       $this->set(compact('ifrRecords','villages'));
+    }
+
+    
+    public function edit($id = null)
+    {
+        $this->viewBuilder()->layout('layout');
+		$this->LoadModel('DocumentSubtypes');
+		 $ifrRecords = $this->IfrRecords->get($id, [
+            'contain' => [],
+        ]);
+        if ($this->request->is(['patch', 'post', 'put'])) { //echo "<pre>"; print_r($this->request->getData()); exit();
+			//$checkpageDuplicate    = $this->IfrRecords->find('all')->where(['IfrRecords.title_deed_no'=>$this->request->data['title_deed_no'],'IfrRecords.sheet_no'=>$this->request->data['sheet_no'],'IfrRecords.id !='=>$id])->count();
+			//if($checkpageDuplicate > 0){
+			
+				//$this->Flash->error(__('Duplicate Entry. Please Check.'));
+			//}else{               			
+				$this->request->data['created_on']      = date('Y-m-d H:i:s');	
+				$this->request->data['created_by']      = $this->Auth->user('id');
+				
+				// if($this->request->data['file_path']['name'] != ''){
+				// $ifrfile 						        = $this->request->data['file_path'];
+				
+				// $file 										= 	$ifrfile['name'];
+				// $array 										= 	explode('.', $file);
+				// $fileName									=	'IFR';	  	
+				// $fileExt									=	$array[count($array)-1];
+				// $newfile									=	$fileName."_".date('YmdHis').".".$fileExt;
+				// $tempFile 									= 	$ifrfile['tmp_name'];
+				// $targetPath 								= 	'uploads/IFR/';
+				// $targetFile 								= 	$targetPath .$newfile;
+				// move_uploaded_file($tempFile,$targetFile);
+				// $this->request->data['file_path']			= $targetFile;
+				// }else{
+                // $this->request->data['file_path']			= $this->request->data['file_path_1'];
+				// }												
+				$data = $this->request->getData();
+                
+                // Check if document_subtype_id is not 44 and unset fields accordingly
+                if ($data['document_subtype_id'] != 44) {
+                    unset($data['author']);
+                    unset($data['publisher_name']);
+                }
+                $i=0;
+                if ($data['file_path']['tmp_name']=="") {
+                    unset($data['file_path']);
+                    $i=1;
+                } 
+                // Create a new request object with modified data
+                $newRequest = $this->request->withParsedBody($data);
+                
+                // Use the modified request object to get the validator
+                $validator = $this->IfrRecords->getValidator('default');
+                
+                // Validate the modified data using the validator
+                $errors = $validator->errors($newRequest->getData());				
+			   
+				// if (empty($errors)) {
+                   if ($i==0) {
+                    // File has been uploaded
+                    // Process file upload and set file path
+					$bpfile 						        = $this->request->data['file_path'];
+					$bptype 						        = $this->request->data['document_subtype_id'];
+					
+					$file 										= 	$ifrfile['name'];
+					$array 										= 	explode('.', $file);
+					$fileName									=	'IFR';	  	
+					$fileExt									=	$array[count($array)-1];
+					$newfile									=	$fileName."_".date('YmdHis').".".$fileExt;
+					$tempFile 									= 	$ifrfile['tmp_name'];
+					$targetPath 								= 	'uploads/IFR/';
+					$targetFile 								= 	$targetPath .$newfile;
+					move_uploaded_file($tempFile,$targetFile);
+					$this->request->data['file_path']			= $targetFile;
+                } else {
+                    // No file uploaded, set file path to null or an empty value
+                    $targetFile =  $this->request->data['file_path_1'] ; // or ''
+                }
+              
+				$ifrRecords = $this->IfrRecords->patchEntity($ifrRecords, $this->request->getData());
+                $ifrRecords->file_path= $targetFile;				
+				//echo "<pre>"; print_r($ifrRecords); exit();
+				if ($this->IfrRecords->save($ifrRecords)) {			
+				
+					$this->Flash->success(__('The IFR Record has been saved.'));
+					return $this->redirect(['action' => 'index']);
+				}else{
+					
+					
+					$this->Flash->error(__('The IFR Record could not be saved. Please, try again.'));
+				} 
+			// }else {
+              
+			// 		$this->set('errors', $errors);
+			// 	}
+				
+       
+		  // }
+        }
+		
+		$documentSubtypes             	= $this->DocumentSubtypes->find('list', array('order'=>'DocumentSubtypes.order_flag ASC'))->where(['DocumentSubtypes.document_type_id' => 4])->toArray();
+        $this->set(compact('ifrRecords','villages'));
+    }
+
+    
+    public function delete($id = null)
+    {
+        $this->request->allowMethod(['post', 'delete']);
+        $ifrRecord = $this->IfrRecords->get($id);
+        $ifrRecord->is_active = 0;
+        if ($this->IfrRecords->save($ifrRecord)) {
+            $this->Flash->success(__('The IFR record has been deleted.'));
+            	return $this->redirect(['action' => 'index']);
+       
+        } else {
+            $this->Flash->error(__('The IFR record could not be deleted. Please, try again.'));
+        }
+
+        
+    }
+
+	public function ajaxgettaluks($dist_name = null){
+
+      	$this->viewBuilder()->layout('');
+        $this->LoadModel('IfrRecords');
+
+			$taluks           = $this->IfrRecords->find('list',['keyField'=>'taluk_name','valueField'=>'taluk_name'])->where(['IfrRecords.district_name'=>$dist_name,'IfrRecords.is_active'=>1])->group(['IfrRecords.taluk_name'])->toArray();
+     
+      
+       $this->set(compact('taluks'));
+      
+
+	}
+
+	public function ajaxgetvillages($taluk_name = null){ 
+
+      	$this->viewBuilder()->layout('');
+        $this->LoadModel('IfrRecords');
+
+			$villages           = $this->IfrRecords->find('list',['keyField'=>'village_name','valueField'=>'village_name'])->where(['IfrRecords.taluk_name'=>$taluk_name,'IfrRecords.is_active'=>1])->group(['IfrRecords.village_name'])->toArray();
+     
+      
+       $this->set(compact('villages'));
+      
+
+	}
+}
