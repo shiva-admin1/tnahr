@@ -1,0 +1,6 @@
+CI / CD
+Git, GitLab, Jenkins, circle ci, Azure 
+1.Code Built --> git repository 
+2.Build --> Compile / docker - Install dependencies
+	  Artifact / container registry  
+3.Deploy --> SSH - development server | uit | Production
