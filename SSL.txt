@@ -1,0 +1,232 @@
+https://www.youtube.com/watch?v=5JNZdDnH4l4
+--------(Secure Sockets Layer)SSL Certificate https://localhost/-----(Ubuntu)
+Neet to enable "Apache2 Full"
+#ufw enable
+#ufw app list
+#ufw status
+#ufw allow "Apache2 Full"
+->Enable the Module SSL
+#a2enmod ssl
+systemctl restart apache2
+->Create the SSL key and certificate files with the openssl
+#sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/ssl/private/apache-selfsigned.key -out /etc/ssl/certs/apache-selfsigned.crt
+----apache config file-----
+#nano /etc/apache2/sites-available/000-default.conf
+<VirtualHost *:443>
+   ServerName webmaster@localhost
+   DocumentRoot /var/www/html
+
+   SSLEngine on
+   SSLCertificateFile /etc/ssl/certs/apache-selfsigned.crt
+   SSLCertificateKeyFile /etc/ssl/private/apache-selfsigned.key
+</VirtualHost>
+#sudo apache2ctl configtest
+    Syntax OK
+systemctl reload apache2
+-----------Remove an SSL certificate--------------
+sudo dpkg-reconfigure ca-certificates
+sudo update-ca-certificates
+---------------------------------------------------------------------------------------------------------------------------------------
+***********Centos8 (Redirect HTTP to HTTPS)*************
+sudo openssl req -x509 -nodes -days 121 -newkey rsa:2048 -keyout /etc/pki/tls/private/selfsigned.key -out /etc/pki/tls/certs/selfsigned.crt
+sudo nano /etc/httpd/conf.d/yourdomain.conf
+<VirtualHost *:80>
+    ServerName localhost
+    ServerAlias www.yourdomain.com
+	
+    # Redirect all HTTP requests to HTTPS
+    Redirect permanent / https://yourdomain.com/
+</VirtualHost>
+---------cd /etc/httpd/conf.d/ssl.conf---------(Make sure DocumentRoot - Just check this is enabled)
+<VirtualHost *:443>
+    ServerName yourdomain.com
+    ServerAlias www.yourdomain.com
+
+    DocumentRoot /var/www/html
+
+    SSLEngine on
+    SSLCertificateFile /etc/pki/tls/certs/selfsigned.crt
+    SSLCertificateKeyFile /etc/pki/tls/private/selfsigned.key
+
+    # Optional: SSLProtocol all -SSLv3
+</VirtualHost>
+=======================================================================================================================================
+***********Ubuntu (Redirect HTTP to HTTPS)*************
+apt install python3-certbot-apache
+install module_ssl
+install module_rewrite
+a2enmod rewrite
+a2enmod ssl
+vim /etc/apache2/sites-available/000-default.conf
+Redirect permanent / https://localhost/
+confirm the SSL Engine On - default-ssl.conf
+vim /etc/apache2/sites-available/new-domain.conf
+<VirtualHost *:80>
+    ServerAdmin webmaster@example.com
+    ServerName hack.org.in
+
+    DocumentRoot /var/www/html/hack
+   # DirectoryIndex index.html index.php
+
+    ErrorLog ${APACHE_LOG_DIR}/hack_error.log
+    CustomLog ${APACHE_LOG_DIR}/hack_access.log combined
+
+    <Directory /var/www/html/hack>
+        Options Indexes FollowSymLinks
+        AllowOverride All
+        Require all granted
+    </Directory>
+</VirtualHost>
+a2ensite new-domain.conf
+certbot --apache
+certbot certificates
+certbot renew --dry-run
+
+============================================================================================================
+------------------------------------Windows Localhost--------------------------------------------------------------------------------------------------------------------------------------------
+----------------------------SSL on Localhost------------------------
+create a extended file system ‪D:\xampp\apache\shiva.ext
+authorityKeyIdentifier=keyid,issuer
+
+basicConstraints=CA:FALSE
+
+keyUsage = digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment
+
+subjectAltName = @alt_names
+
+[alt_names]
+
+DNS.1 = localhost
+
+DNS.2 = *.tnahr.info
+127.
+DNS.3 = ahrtn.info
+
+DNS.4 = 0.0.1
+
+DNS.5 = 127.0.0.2
+------------------------------------------------------------------------
+‪D:\xampp\apache\makecert.bat---add the day & extended file shiva.ext
+bin\openssl x509 -in server.csr -out server.crt -req -signkey server.key -days 31 -extfile shiva.ext
+save & exit..Open the batch file,
+enter pem pass phrase : shiva
+------------------------------------------------------------------------
+‪D:\xampp\apache\conf\ssl.crt\server.crt (Install the Certificate)
+Restart apache
+------------------------------------------------------------------------------------------------------------------------------------------
+-------------------https://youtu.be/eqrDHkIFe8U?si=RyhkrSS-pMnjuP_X---------------------------------------------------------------------------------------
+------------2nd Method------------https://shellcreeper.com/how-to-create-valid-ssl-in-localhost-for-xampp/----------------
+D:\xampp\apache\crt
+cert.conf
+make-cert.bat
+------------------------------cert.conf------------------------------
+[ req ]
+
+default_bits        = 2048
+default_keyfile     = server-key.pem
+distinguished_name  = subject
+req_extensions      = req_ext
+x509_extensions     = x509_ext
+string_mask         = utf8only
+
+[ subject ]
+
+countryName                 = Country Name (2 letter code)
+countryName_default         = IN
+
+stateOrProvinceName         = State or Province Name (full name)
+stateOrProvinceName_default = TN
+
+localityName                = Locality Name (eg, city)
+localityName_default        = 
+
+organizationName            = Organization Name (eg, company)
+organizationName_default    = Let's Encrypt
+
+commonName                  = Common Name (e.g. server FQDN or YOUR name)
+commonName_default          = R3
+
+emailAddress                = Email Address
+emailAddress_default        = test@example.com
+
+[ x509_ext ]
+
+subjectKeyIdentifier   = hash
+authorityKeyIdentifier = keyid,issuer
+
+basicConstraints       = CA:FALSE
+keyUsage               = digitalSignature, keyEncipherment
+subjectAltName         = @alternate_names
+nsComment              = "OpenSSL Generated Certificate"
+
+[ req_ext ]
+
+subjectKeyIdentifier = hash
+
+basicConstraints     = CA:FALSE
+keyUsage             = digitalSignature, keyEncipherment
+subjectAltName       = @alternate_names
+nsComment            = "OpenSSL Generated Certificate"
+
+[ alternate_names ]
+
+DNS.1       = localhost
+---------------------------make-cert.bat-------------------------------
+@echo off
+set /p domain="Enter Domain: "
+set OPENSSL_CONF=../conf/openssl.cnf
+
+if not exist .\%domain% mkdir .\%domain%
+
+..\bin\openssl req -config cert.conf -new -sha256 -newkey rsa:2048 -nodes -keyout %domain%\server.key -x509 -days 3650 -out %domain%\server.crt
+
+echo.
+echo -----
+echo The certificate was provided.
+echo.
+pause
+---------------------------------------------------------------------
+open batch file to make a certificate
+‪D:\xampp\apache\conf\ssl.crt ( Install the certificate)
+‪D:\xampp\apache\conf\ssl.kry
+D:\XAMPP\apache\conf\extra\httpd-ssl.conf ( SSLEngine on)
+----------httpd-ssl.conf---- (Make sure is Enable)-------
+<VirtualHost 127.0.0.1:443>
+    DocumentRoot "/your/project/path"
+    ServerName  localhost
+    SSLEngine on
+    SSLCertificateFile "/your/ssl/server.crt"
+    SSLCertificateKeyFile "/your/ssl/server.key"
+    <FilesMatch "\.(cgi|shtml|phtml|php)$">
+        SSLOptions +StdEnvVars
+    </FilesMatch>
+    <Directory "C:/xampp/apache/cgi-bin">
+        SSLOptions +StdEnvVars
+    </Directory>
+</VirtualHost>
+-----D:\XAMPP\apache\conf\extra\httpd-vhosts.conf---------(Redirecting HTTP to HTTPS)
+<VirtualHost *:80>
+    RewriteEngine on
+    ServerName yourdomain.com
+    RewriteRule ^(.*) https://%{SERVER_NAME}$1 [R,L]
+</VirtualHost>
+----------------------------------------------------------------------
+Restart the Apache2.
+
+
+=========================================================
+	Need to check on server both centos and ubuntu
+RewriteEngine On
+# Never forward request for .well-known (important when using Let's Encrypt)
+RewriteCond %{REQUEST_URI} !^/.well-known
+# Next 2 lines: Force redirection if incoming request is not on 443
+RewriteCond %{SERVER_PORT} !^443$
+RewriteRule (.*) https://%{HTTP_HOST}$1 [L]
+# This section passes the system Apaches connection mode to the
+# instance Apache. Make sure mod_headers is enabled, otherwise it
+# will be ignored and "Analyze configuration" will issue "WARN".
+<IfModule headers_module>
+    RequestHeader set X-Forwarded-Proto expr=%{REQUEST_SCHEME}
+    RequestHeader set X-Forwarded-SSL expr=%{HTTPS}
+</IfModule>
+
