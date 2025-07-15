@@ -1,0 +1,61 @@
+diskpart						UEFI --> GPT
+list disk						Legacy BIOS --> MBR
+select disk 1 (pendrive)
+clean
+create partition primary
+select partition 1
+format fs=fat32 quick    or   format fs=ntfs quick
+active
+assign
+---------Disk not showing while install win11---------
+https://www.intel.com/content/www/us/en/download/19512/intel-rapid-storage-technology-driver-installation-software-with-intel-optane-memory-10th-and-11th-gen-platforms.html
+download and extract the folder - cmd 👇 
+.\SetupRST.exe -extractdrivers SetupRST_extracted
+copy "VMD" to booted pendrive
+---------------Grub Rescue-----------------
+grub resuce >set
+ls
+set boot=( hd0,msdos5)
+set prefix=( hd0,msdos5)/boot/grub
+insmod normal
+normal
+--------------Remove linux through windows cmd prompt ------------
+Delete disk of ubuntu partition 
+bcdedit /set {bootmgr} displaybootmenu yes
+bcdedit /set {bootmgr} path \EFI\ubuntu\grubx64.efi
+bcdedit
+bcdedit /enum firware
+Firmwarw Application {.......}
+bcdedit /delete {..........}
+select volume (efi-ubuntu)
+set diskpart to ubuntu EFI disk
+diskpart 
+select disk 0
+list
+cd EFI:
+F:\EFI>rd ubuntu /s 
+---------------------Repair-----------------------------------
+USB boot recovery - advanced option Windows.
+bootrec/fixmbr	(make sure the space)
+bootrec/fixboot
+bootrec /scanos 
+bootrec /rebuildbcd
+-----------------------------------------------------------
+Ubuntu recovery cmds,
+sudo mount --bind /dev /mnt/dev
+sudo mount --bind /proc /mnt/proc
+sudo mount --bind /sys /mnt/sys
+sudo chroot /mnt
+#grub-install /dev/sda
+#update-grub
+#exit
+sudo umount /mnt/sys
+sudo umount /mnt/proc
+sudo umount /mnt/dev
+sudo umount /mnt
+-----------Set grub-costomizer on Ubuntu---------------------
+sudo add-apt-repository ppa:danielrichter2007/grub-customizer
+sudo apt-get update
+sudo apt-get install grub-customizer
+grub-customizer
+
