@@ -1,0 +1,63 @@
+=============mysql_config_editor=======working==
+mysql_config_editor print --all
+mysql_config_editor set --login-path=senthil --host=localhost --user=root --password
+mysql --login-path=Senthil
+mysql_config_editor remove --login-path=senthil
+vim timestamp.sh
+mysqldump --login-path=senthil muthusof_tnahr > /home/msl/shiva/mysql_database_backups/muthusof_tnahr_$(date +%d-%m-%Y_%H:%M:%S).sql
+mysqldump --login-path=senthil muthusof_tnahr | gzip > /home/msl/shiva/mysql_database_backups/muthusof_tnahr_$(date +%d-%m-%Y_%H:%M:%S).sql.gz
+find /home/msl/shiva/mysql_database_backups/* -mtime +15 -exec rm {} \;
+chmod 777 timestamp.sh
+mv timestamp.sh /root/timestamp.sh
+crontab -e
+0 6 * * * /bin/bash /root/timestamp.sh
+crontab -l
+===================================================
+--------------------Crontab Linux------------------
+Create a Script file ScriptFile.sh
+mysqldump tnphc > /home/shiva/data/tnphc_live_$(date +%Y-%m-%d_%H:%M:%S).sql
+mysqldump -u root tnphc etc,.........
+mysqldump tnphc | gzip > "/home/shiva/data/tnphc_live_$(date +%d-%m-%Y_%H:%M:%S).sql.gz"
+find /path/to/backup_folder/* -mtime +X -exec rm {} \;
+	find /home/my_folder -type f -mtime +5 -exec rm {} \; ----> need to check this cmd
+ 
+mysqldump survey_db -u root -p'Root@345' --all-databases > /home/asp/backUp/All_Database_$(date +%Y-%m-%d_%H:%M:%S).sql
+-------------------------------------------------------
+Edit config file for authendication (mysql_config_edit)
+nano /etc/mysql/mysql.conf.d/mysql.cnf | vim /etc/mysql/conf.d/mysql-client.cnf (add a client) (ubuntu)
+add this on config file,
+[client]
+user = root
+password = root@123
+host = 127.0.0.1
+systemctl restart mysql
+
+#[mypath]
+#user = root
+#password = root@123
+#host = localhost
+=====================================
+#crontab --help
+#crontab -e
+00 22 * * * /bin/sh /home/shiva/data/ScriptFile.sh
+=======================================================
+=========Cento8================
+DB Server===>crontab
+systemctl status crond
+vim script
+mysqldump survey_db -u root -p'Root@345' > /home/asp/backUp/survey_live_$(date +%Y-%m-%d_%H:%M:%S).sql
+mysqldump survey_db -u root -p'Root@345' | gzip > /home/asp/backUp/survey_live_$(date +%d-%m-%Y_%H:%M:%S).sql.gz
+find /home/asp/backUp/* -mtime +0 -exec rm {} \; (days)
+find /home/asp/backUp/* -mmin +180 -exec rm -f {} \; (minutes)
+crontab -e
+15 13 * * * /bin/sh /home/asp/script.sh
+----------------------------------------
+APP Server====>crontab
+vim script
+mysqldump survey_db -u admin -p'Admin@345' --single-transaction -h 192.168.88.137 > /home/shiva/backUp/survey_live_$(date +%Y-%m-%d_%H:%M:%S).sql
+mysqldump survey_db -u admin -p'Admin@345' -h 192.168.88.137 | gzip > /home/shiva/backUp/survey_live_$(date +%d-%m-%Y_%H:%M:%S).sql.gz
+crontab -e
+02 15 * * * /bin/sh /home/shiva/script.sh
+app server crontab script error
+mysqldump: Got error: 1044: Access denied for user 'admin'@'192.168.88.136' to database 'survey_db' when using LOCK TABLES
+GRANT LOCK TABLES ON survey_db.* TO 'admin'@'192.168.88.136'; (on db-server)
