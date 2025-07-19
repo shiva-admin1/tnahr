@@ -1,0 +1,15 @@
+vim /etc/ssh/sshd_config 
+      #no default banner path
+      #Banner /etc/ssh/mybanner  (uncommand)
+vi /etc/ssh/mybanner
+apt-get install figlet lolcat
+apt install sysvbanner
+figlet SHIVA
+figlet -c SHIVA (prints in center)
+figlet -f slant -c shiva(-f font name)
+figlet -c Shiva | lolcat (color font)
+figlet -f digital -c Authorized access only for! | lolcat
+===================================
+----Set MOTD Banner (Message of the day)-----after login banner
+vi /etc/motd
+systemctl restart sshd
