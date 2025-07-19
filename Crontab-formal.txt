@@ -1,4 +1,4 @@
-=============mysql_config_editor=======working==
+=============mysql_config_editor=======working==l
 mysql_config_editor print --all
 mysql_config_editor set --login-path=senthil --host=localhost --user=root --password
 mysql --login-path=Senthil
