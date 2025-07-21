@@ -1,0 +1,346 @@
+Docker Command 
+ yum update
+    2  yum install htop
+    3  yum install tree
+    4  yum install docker -yy
+    5  systemctl start docker
+    6  systemctl enable docker
+    7  systemctl status docker
+    8  docker image ls
+    9  docker image ngix push
+   10  docker ngix push
+   11  docker image ls
+   12  docker image pull ngix
+   13  docker image ls
+   14  docker image ls
+   15  docker image pull ngix
+   16  yum update
+   17  yum install nginx
+   18  docker image pull ngix
+   19  docker image ls
+   20  docker container ps -a
+   21  docker run -d --name shiva55 80:80 latest
+   22  docker image ls
+   23  docker image pull nginx
+   24  clear
+   25  docker image ls
+   26  docker image ls
+   27  docker run -d --name shiva55 80:80 a6bd71f48f68
+   28  docker container ps -a
+   29  docker run -d --name nginx shiva55 80:80 a6bd71f48f68
+   30  docker run -d --namenginx shiva55 80:80 a6bd71f48f68
+   31  docker container ps -a
+   32  docker run -d --name shiva55 -p 80:80 a6bd71f48f68
+   33  docker run -d --name shiva56 -p 80:80 a6bd71f48f68
+   34  docker container ps -a
+   35  clear
+   36  docker image ls
+   37  docker image pull nginx
+   38  docker container ps -a
+   39  echo 'Docker Running successfully' > docker
+   40  docker build -t applicationcentos
+   41  docker build -t application
+   42  htop
+   43  docker container ps -a
+   44  docker build -t application
+   45  docker image ls
+   46  docker run -d -name application -p 8080:80 latest
+   47  docker run -d --name application -p 8080:80 latest
+   48  docker container ps -a
+   49  docker image ls
+   50  docker run -d --name application -p 8080:80 a6bd71f48f68
+   51  docker container ps -a
+   52  docker build -t application
+   53  docker image ls
+   54  docker container ps -a
+   55  docker build -t shiva55
+   56  docker --help
+   57  docker container --help
+   58  docker build -t application
+   59  docker tag
+   60  docker image ls
+   61  docker container ps
+   62  docker build -t latest
+   63  docker buildx build --help
+   64  docker -build -t latest
+   65  docker build -t application
+   66  docker build -t application
+   67  clear
+   68  df
+   69  docker image tag
+   70  docker image ls
+   71  ls
+   72  vim docker
+   73  cat docker
+   74  clear
+   75  docker build -t my_first_image .
+   76  docker image
+   77  yum update
+   78  clear
+   79  htop
+   80  docker image tag
+   81  docker image ls
+   82  docker push aspshiva23/docker:23-12-2023
+   83  docker pull aspshiva23/docker:23-12-2023
+   84  docker push aspshiva23/docker:23-12-2023
+   85  ls
+   86  cat docker
+   87  docker image tag
+   88  docker image tag f9a aspshiva23/docker:23-12-2023
+   89  Usage:  docker image tag SOURCE_IMAGE[:TAG] TARGET_IMAGE[:TAG]
+   90  Usage:  docker image tag SOURCE_IMAGE[:TAG] TARGET_IMAGE[:TAG]
+   91  Usage:  docke
+   92  clear
+   93  docker pull aspshiva23/docker
+   94  docker pull aspshiva23/docker
+   95  docker push aspshiva23/docker
+   96  docker run -p 81:80 aspshiva23/docker
+   97  ls
+   98  docker image tag aspshiva23/docker
+   99  docker login
+  100  docker build -t aspshiva23/docker .
+  101  docker push aspshiva23/docker
+  102  docker push aspshiva23/docker1
+  103  clear
+  104  docker push aspshiva23/docker1 .
+  105  docker push aspshiva23/docker2
+  106  docker push aspshiva23/docker1 ..
+  107  docker push aspshiva23/docker1 .
+  108  clear
+  109  docker push
+  110  docker login -u aspshiva23
+  111  docker push aspshiva23/docker
+  112  docker build -t aspshiva23/docker
+  113  docker image tag aspshiva23/docker
+  114  docker push aspshiva23/today
+  115  docker push aspshiva23/today .
+  116  docker push aspshiva23/today:23-12-23
+  117  docker container ps -a
+  118  docker push aspshiva23/today
+  119  docker image ls
+  120  docker push nginx
+  121  docker build -t master
+  122  docker build -t master .
+  123  cd /var/lib/docker/tmp/buildkit
+  124  ls
+  125  clear
+  126  docker image ls
+  127  docker build -t
+  128  docker tag ngnix:latest aspshiva23/docker
+  129  docker tag ngnix:latest aspshiva23/docker:latest
+  130  docker image ls
+  131  docker build -t shiva:latest
+  132  docker push aspshiva23/docker:latest
+  133  docker build -t shiva:latest
+  134  clear
+  135  docker tag ngnix aspshiva23/docker
+  136  docker image ls
+  137  docker tag nginx aspshiva23/docker
+  138  docker image ls
+  139  docker push aspshiva23/docker
+  140  docker pull aspshiva23/docker:latest
+  141  history
+  142  clear
+  143  docker image ls
+  144  docker tag prasad:latest
+  145  docker tag prasad:latest aspshiva23/docker:latest
+  146  docker tag prasad:latest aspshiva23/docke1r:latest
+  147  history
+  148  clear
+  149  docker
+  150  clear
+  151  docker image pull shiv
+  152  docker image pull shiv:latest
+  153  docker image ls
+  154  docker image pull nginx
+  155  nginx
+  156  yum update
+  157  clear
+  158  history
+  159  clear
+  160  docker image ps -a
+  161  docker container ps -a
+  162  clear
+  163  history
+  164  ls
+  165  docker image pull shiv:latestdocker image pull shiv:latestdocker image pull shiv:latestdocker image pull shiv:latestdocker image pull shiv:latestdocker image pull shiv:latest
+  166  yum update
+  167  sysytemctl start docker
+  168  systemctl start docker
+  169  systemctl enable docker
+  170  systemctl status docker
+  171  htop
+  172  history
+  173  df
+  174  docker -v
+  175  docker run -v
+  176  docker start docker
+  177  systemctl status docker
+  178  docker info
+  179  docker -info
+  180  systemctl start docker
+  181  systemctl enable docker
+  182  systemctl status docker
+  183  ib/systemd/system/docker.ib/systemd/system/docker.
+  184  systemctl enable
+  185  htop
+  186  docker --info
+  187  docker -info
+  188  htop
+  189  if confic
+  190  if config
+  191  ifconfig
+  192  yum update -y
+  193  yum history
+  194  systemctl start docker
+  195  systemctl enable docker
+  196  systemctl status docker
+  197  yum install java
+  198  history
+  199  docker image pull nginx
+  200  docker image ls
+  201  docker image --help
+  202  wget -O /etc/yum.repos.d/jenkins.repo https://pkg.jenkins.io/redhat-stable/jenkins.repo
+  203  rpm --import https://pkg.jenkins.io/redhat-stable/jenkins.io-2023.key
+  204   yum install fontconfig java-17-openjdk
+  205  yum install fontconfig java-17-openjdk
+  206  yum install jenkins
+  207  yum install epel-release //fails
+  208  amazon-linux-extras install epel
+  209  sudo amazon-linux-extras install epel
+  210  sudo amazon-linux-extras install java-openjdk11
+  211  yum install jenkins
+  212  yum install jenkins
+  213  java --version
+  214  jenkins --version
+  215  jenkins -v
+  216  jenkins -version
+  217  service jenkins status
+  218  systemctl status jenkins
+  219  ls -ll
+  220  docker container ls
+  221  docker image ls
+  222  docker run -d --name sample -p 8081:80 a6bd71f48f68
+  223  docker container ls
+  224  clear
+  225  docker container ls
+  226  netstat
+  227  netstat -tnlp
+  228  ps -aux
+  229  ls -ll
+  230  shh rsa
+  231  shh -rsa
+  232  history
+  233  netstat
+  234  ls -ll
+  235  ls -ll
+  236  ls
+  237  ls -ll
+  238  Maeven
+  239  ls -ll
+  240  ls -ll
+  241  ifconfig
+  242  ls
+  243  cat docker
+  244  docker run -d --name ngincontainer2 -p 80:80 latest
+  245  docker run -d --name ngincontainer2 -p 81:80 latest
+  246  service docker status
+  247  systemctl start docker
+  248  systemctl status docker
+  249  clear
+  250  docker run -d --name ngincontainer2 -p 80:80 latest
+  251  docker run -d --name ngincontainer2 -p 80:80 latest
+  252  docker pull aspshiva23
+  253  docker pull nginx
+  254  docker image ps
+  255  clear
+  256  docker image ls
+  257  docker container ls
+  258  docker image pull nginx
+  259  docker image ls
+  260  docker run -d --name nginx2 -p 8082:80 a6bd71f48f68
+  261  docker container ls
+  262  docker login -u aspshiva23
+  263  docker push nginx aspshiva/docker:heaven
+  264  docker push nginx aspshiva/docker:copycat
+  265  docker push aspshiva/docker:copycat
+  266  docker image tag
+  267  docker pull aspshiva/docker:copycat
+  268  docker tag
+  269  docker tag nginx app aspshiva23docker:copycat
+  270  docker build -t appliation
+  271  docker container tag
+  272  docker container ls
+  273  docker container ps
+  274  docker image ls
+  275  docker build -t latest
+  276  docker diff
+  277  docker diff a6bd71f48f68
+  278  docker diff
+  279  docker diff a6bd71f48f68
+  280  docker build -t copycat
+  281  history
+  282  docker build -t shiva:latest
+  283  docker build -t shiva1:latest
+  284  docker build -t shiva23/docker:latest
+  285  docker container inspect
+  286  docker container ls
+  287  docker image ls
+  288  docker container rename a6bd71f48f68
+  289  docker container attach --help
+  290  docker container --help
+  291  docker container ps
+  292  docker container stop
+  293  docker container ps 03d7e810e674
+  294  docker container update
+  295  docker container update --memory
+  296  docker container commit 03d7e810e674
+  297  docker container ps
+  298  dockercontainer
+  299  docker container
+  300  yum history
+  301  systemctl start jenkins
+  302  journalctl -xeu
+  303  docker container ps
+  304  docker value --help
+  305  docker value --help
+  306  yum history
+  307  systemctl start docker
+  308  cd var/www/html
+  309  cd /var/www/html
+  310  cd /var/www/html/
+  311  cd /var
+  312  cd www
+  313  cd /www
+  314  exit
+  315  yum history
+  316  systemctl start docker
+  317  systemctl enable docker
+  318  systemctl status docker
+  319  cls
+  320  ls
+  321  cd /var/www/html
+  322  cd var/www/html
+  323  cd var/www/html/
+  324  cd /var/www/html/
+  325  ls
+  326  cat docker
+  327  cd /var/www/html
+  328  htop
+  329  cd var/www/html
+  330  cd /var/www/html
+  331  cd /var/www
+  332  cd /www
+  333  docker container upd
+  334  docker container update
+  335  systemctl start docker
+  336  systemctl status docker
+  337  cd /var/www/html
+  338  netstat
+  339  netstat -tnlup
+  340  ps =aux
+  341  ps -aux
+  342  docker container ps
+  343  docker image ls
+  344  cd /var
+  345  lsblk
